@@ -1,6 +1,6 @@
-# Interface
 Extension is for controlling probackup catalogs from within postgres database.
 
+# Interface
 Extension creates schema "probackup" which contains:
 Table "catalogs" which describes catalog: id, backup path and storage detauls (is it either FS/SFTP/S3).
 Table "s3_config" which contains connection parameters to S3.
@@ -26,7 +26,6 @@ Is a path to probackup command which should be used in your session.
 
 
 # Setup
-1. create database fuxx;
 1. LOAD 'probackup_ctl';
 
 Build the extension:
