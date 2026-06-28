@@ -1,0 +1,51 @@
+#include "probackup_ctl.h"
+#include "utils/builtins.h"
+#include "utils/jsonb.h"
+
+char *
+run_probackup(const char *probackup_path, const char *command, List *params)
+{
+	List *pbk =
+	        lappend(lappend(NIL, pstrdup(probackup_path)), pstrdup(command));
+	List          *all_params = list_concat(pbk, params);
+	StringInfoData out, err;
+	int            rc;
+
+	initStringInfo(&out);
+	initStringInfo(&err);
+
+	rc = run(all_params, &out, &err);
+
+	if (strlen(err.data) > 0)
+	{
+		ereport(INFO,
+		        errmsg("Probackup result code=%d, output:\n%s", rc, err.data));
+	}
+	return out.data;
+}
+
+char *
+exec_probackup(const BackupPath *bp, const char *command, List *params)
+{
+	List *s_params   = storage_params_list(bp);
+	List *all_params = list_concat(s_params, params);
+
+	return run_probackup(probackup_path, command, all_params);
+}
+
+Jsonb *
+exec_probackup_json(const BackupPath *bp, const char *command, List *params)
+{
+	char  *out;
+	Jsonb *jb;
+	Datum  jsonb_datum;
+
+	params = lappend(params, "--format");
+	params = lappend(params, "json");
+	out    = exec_probackup(bp, command, params);
+
+	jsonb_datum = DirectFunctionCall1(jsonb_in, CStringGetDatum(out));
+	jb          = DatumGetJsonbP(jsonb_datum);
+
+	return jb;
+}

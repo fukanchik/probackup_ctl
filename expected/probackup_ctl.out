@@ -1,0 +1,9 @@
+CREATE EXTENSION probackup_ctl version '1.0';
+INFO:  Setting probackup flavour version 2
+SELECT probackup.register_catalog('/TTT');
+INFO:  Probackup result code=256, output:
+ERROR: Failed to get backup list: Cannot open dir "/TTT/backups": No such file or directory
+
+ERROR:  invalid input syntax for type json
+DETAIL:  The input string ended unexpectedly.
+CONTEXT:  JSON data, line 1: 
