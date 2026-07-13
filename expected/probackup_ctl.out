@@ -1,6 +1,8 @@
 CREATE EXTENSION probackup_ctl version '1.0';
 INFO:  Setting probackup flavour version 2
-SELECT probackup.register_catalog('/tmp/b2');
+SELECT probackup.register_catalog(backup_path => NULL);
+ERROR:  `backup_path' is required!
+SELECT probackup.register_catalog(backup_path => '/tmp/b2');
  register_catalog 
 ------------------
  /tmp/b2

@@ -62,26 +62,51 @@ check_path(const char *what, char *val)
 Datum
 probackup_register_catalog(PG_FUNCTION_ARGS)
 {
-	char *backup_path  = text_to_cstring(PG_GETARG_TEXT_PP(0));
-	char *storage      = text_to_cstring(PG_GETARG_TEXT_PP(1));
-	char *storage_name = text_to_cstring(PG_GETARG_TEXT_PP(2));
-	char *probackup_bin = NULL;
-	text *ret;
-	BackupPath bp;
+	char             *backup_path;
+	char             *storage;
+	char             *storage_name;
+	char             *probackup_bin = NULL;
+	text             *ret;
+	BackupPath        bp;
 	ProbackupCatalog *cat;
+
+	if (PG_ARGISNULL(0))
+	{
+		ereport(ERROR, errmsg("`backup_path' is required!"));
+	} else
+	{
+		backup_path = text_to_cstring(PG_GETARG_TEXT_PP(0));
+	}
+
+	if (PG_ARGISNULL(1))
+	{
+		storage = pstrdup(DEFAULT_STORAGE_KIND);
+	}
+	else
+	{
+		storage = text_to_cstring(PG_GETARG_TEXT_PP(1));
+	}
+
+	if (PG_ARGISNULL(2))
+	{
+		storage_name = pstrdup("");
+	}
+	else
+	{
+		storage_name = text_to_cstring(PG_GETARG_TEXT_PP(2));
+	}
 
 	if (!PG_ARGISNULL(3))
 	{
 		probackup_bin = text_to_cstring(PG_GETARG_TEXT_PP(3));
-		if (probackup_bin[0] == '\0')
-			probackup_bin = NULL;
+		if (probackup_bin[0] == '\0') probackup_bin = NULL;
 	}
 
 	bp = (BackupPath){.id            = 0,
-	      .backup_path   = backup_path,
-	      .storage       = storage,
-	      .storage_name  = storage_name,
-	      .probackup_bin = probackup_bin};
+	                  .backup_path   = backup_path,
+	                  .storage       = storage,
+	                  .storage_name  = storage_name,
+	                  .probackup_bin = probackup_bin};
 
 	cat = probackup_exec_show(&bp, NULL);
 
@@ -97,13 +122,12 @@ probackup_register_catalog(PG_FUNCTION_ARGS)
 	}
 
 	{
-		char nulls[4] = {' ', ' ', ' ', ' '};
-		Oid         argtypes[4] = {TEXTOID, TEXTOID, TEXTOID, TEXTOID};
-		Datum       Values[4]   = {CStringGetTextDatum(backup_path),
-		                           CStringGetTextDatum(storage),
-		                           CStringGetTextDatum(storage_name),
-								   probackup_bin?CStringGetTextDatum(probackup_bin):(Datum)0
-		};
+		char  nulls[4]    = {' ', ' ', ' ', ' '};
+		Oid   argtypes[4] = {TEXTOID, TEXTOID, TEXTOID, TEXTOID};
+		Datum Values[4]   = {
+                CStringGetTextDatum(backup_path), CStringGetTextDatum(storage),
+                CStringGetTextDatum(storage_name),
+                probackup_bin ? CStringGetTextDatum(probackup_bin) : (Datum)0};
 		const char *sql =
 		        "INSERT INTO probackup.catalogs (backup_path, storage, "
 		        "storage_name, probackup_bin) VALUES ($1, $2, $3, $4)";
@@ -200,11 +224,13 @@ probackup_show(PG_FUNCTION_ARGS)
 Datum
 probackup_backup(PG_FUNCTION_ARGS)
 {
-	int64 catalog_id       = PG_GETARG_INT64(0);
-	char *pg_instance      = check_path("instance", text_to_cstring(PG_GETARG_TEXT_PP(1)));
-	char *backup_mode      = text_to_cstring(PG_GETARG_TEXT_PP(2));
-	char *wal_mode         = text_to_cstring(PG_GETARG_TEXT_PP(3));
-	char *backup_id        = check_path("backup id", text_to_cstring(PG_GETARG_TEXT_PP(4)));
+	int64 catalog_id = PG_GETARG_INT64(0);
+	char *pg_instance =
+	        check_path("instance", text_to_cstring(PG_GETARG_TEXT_PP(1)));
+	char *backup_mode = text_to_cstring(PG_GETARG_TEXT_PP(2));
+	char *wal_mode    = text_to_cstring(PG_GETARG_TEXT_PP(3));
+	char *backup_id =
+	        check_path("backup id", text_to_cstring(PG_GETARG_TEXT_PP(4)));
 	char *parent_backup_id = text_to_cstring(PG_GETARG_TEXT_PP(5));
 
 	BackupPath bp = select_catalog(catalog_id);
@@ -218,9 +244,11 @@ probackup_backup(PG_FUNCTION_ARGS)
 Datum
 probackup_delete(PG_FUNCTION_ARGS)
 {
-	int64 catalog_id  = PG_GETARG_INT64(0);
-	char *pg_instance = check_path("instance", text_to_cstring(PG_GETARG_TEXT_PP(1)));
-	char *backup_id   = check_path("backup id", text_to_cstring(PG_GETARG_TEXT_PP(2)));
+	int64 catalog_id = PG_GETARG_INT64(0);
+	char *pg_instance =
+	        check_path("instance", text_to_cstring(PG_GETARG_TEXT_PP(1)));
+	char *backup_id =
+	        check_path("backup id", text_to_cstring(PG_GETARG_TEXT_PP(2)));
 
 	BackupPath bp     = select_catalog(catalog_id);
 	List      *params = NIL;
@@ -254,9 +282,11 @@ probackup_delete(PG_FUNCTION_ARGS)
 Datum
 probackup_log(PG_FUNCTION_ARGS)
 {
-	int64 catalog_id  = PG_GETARG_INT64(0);
-	const char *pg_instance = check_path("instance", text_to_cstring(PG_GETARG_TEXT_PP(1)));
-	const char *backup_id   = check_path("backup id", text_to_cstring(PG_GETARG_TEXT_PP(2)));
+	int64       catalog_id = PG_GETARG_INT64(0);
+	const char *pg_instance =
+	        check_path("instance", text_to_cstring(PG_GETARG_TEXT_PP(1)));
+	const char *backup_id =
+	        check_path("backup id", text_to_cstring(PG_GETARG_TEXT_PP(2)));
 
 	BackupPath     bp = select_catalog(catalog_id);
 	char          *log_path;
@@ -269,8 +299,7 @@ probackup_log(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR, errmsg("Log is only available for local backups"));
 	}
-	log_path = psprintf("%s/backups/%s/%s.log", bp.backup_path,
-	                    pg_instance,
+	log_path = psprintf("%s/backups/%s/%s.log", bp.backup_path, pg_instance,
 	                    backup_id);
 
 	fi = fopen(log_path, "r");
