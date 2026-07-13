@@ -73,6 +73,8 @@ probackup_register_catalog(PG_FUNCTION_ARGS)
 	if (!PG_ARGISNULL(3))
 	{
 		probackup_bin = text_to_cstring(PG_GETARG_TEXT_PP(3));
+		if (probackup_bin[0] == '\0')
+			probackup_bin = NULL;
 	}
 
 	bp = (BackupPath){.id            = 0,
@@ -95,15 +97,24 @@ probackup_register_catalog(PG_FUNCTION_ARGS)
 	}
 
 	{
-		Oid         argtypes[3] = {TEXTOID, TEXTOID, TEXTOID};
-		Datum       Values[3]   = {CStringGetTextDatum(backup_path),
+		char nulls[4] = {' ', ' ', ' ', ' '};
+		Oid         argtypes[4] = {TEXTOID, TEXTOID, TEXTOID, TEXTOID};
+		Datum       Values[4]   = {CStringGetTextDatum(backup_path),
 		                           CStringGetTextDatum(storage),
-		                           CStringGetTextDatum(storage_name)};
+		                           CStringGetTextDatum(storage_name),
+								   probackup_bin?CStringGetTextDatum(probackup_bin):(Datum)0
+		};
 		const char *sql =
 		        "INSERT INTO probackup.catalogs (backup_path, storage, "
 		        "storage_name) VALUES ($1, $2, $3)";
-		int ret =
-		        SPI_execute_with_args(sql, 3, argtypes, Values, NULL, false, 0);
+		int ret;
+
+		if (probackup_bin == NULL)
+		{
+			nulls[3] = 'n';
+		}
+
+		ret = SPI_execute_with_args(sql, 3, argtypes, Values, nulls, false, 0);
 		if (ret < 0)
 		{
 			ereport(ERROR, errmsg("SPI error number: %d", ret));

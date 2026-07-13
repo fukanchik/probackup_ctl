@@ -78,7 +78,7 @@ get_lsn_value(const char *key, JsonbContainer *container)
 	char      *str = get_string_value(key, container);
 	XLogRecPtr ret;
 
-#if PG_MAJOR_VERSION_NUM > 18
+#if PG_VERSION_NUM < 170000
 	bool err = false;
 
 	ret = pg_lsn_in_internal(str, &err);

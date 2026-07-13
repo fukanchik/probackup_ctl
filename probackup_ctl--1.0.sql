@@ -28,7 +28,8 @@ CREATE TABLE probackup.sftp_config (
 
 CREATE FUNCTION probackup.register_catalog(backup_path TEXT,
 	   storage TEXT DEFAULT 'FS',
-	   storage_name TEXT DEFAULT ''
+	   storage_name TEXT DEFAULT '',
+	   probackup_bin TEXT DEFAULT NULL
 )
 RETURNS text AS 'MODULE_PATHNAME', 'probackup_register_catalog'
 LANGUAGE C STRICT VOLATILE;
