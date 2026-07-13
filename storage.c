@@ -1,6 +1,6 @@
 /* Support for probackup storages configuration. FS/SFTP/S3. */
-#include "probackup_ctl.h"
 #include "executor/spi.h"
+#include "probackup_ctl.h"
 #include "utils/builtins.h"
 
 typedef struct
@@ -12,13 +12,13 @@ typedef struct
 
 typedef struct
 {
-		char *s3_hostname  ;
-		char *s3_port      ;
-		char *s3_access_key;
-		char *s3_secret_key;
-		char *s3_region    ;
-		char *s3_bucket    ;
-		bool  s3_https     ;
+	char *s3_hostname;
+	char *s3_port;
+	char *s3_access_key;
+	char *s3_secret_key;
+	char *s3_region;
+	char *s3_bucket;
+	bool  s3_https;
 } S3Parameters;
 
 static SftpParameters
@@ -48,10 +48,16 @@ select_sftp(const char *storage_name)
 	{
 		TupleDesc tupdesc = SPI_tuptable->tupdesc;
 		uint64    numvals = SPI_processed;
+		if (numvals == 0)
+		{
+			ereport(ERROR, errmsg("No SFTP storage found '%s'", storage_name));
+		}
+
 		if (numvals != 1)
 		{
-			ereport(ERROR, errmsg("Multiple SFTP storages with the same name: %s",
-			                      storage_name));
+			ereport(ERROR,
+			        errmsg("Multiple SFTP storages with the same name: %s",
+			               storage_name));
 		}
 
 		for (uint64 i = 0; i < numvals; i++)
@@ -84,10 +90,11 @@ static S3Parameters
 select_s3(const char *storage_name)
 {
 	S3Parameters ret;
-	Oid            argtypes[1] = {TEXTOID};
-	Datum          Values[1]   = {CStringGetTextDatum(storage_name)};
-	const char    *sql =
-	        "SELECT s3_hostname, s3_port, s3_access_key, s3_secret_key, s3_region, s3_bucket, s3_https from "
+	Oid          argtypes[1] = {TEXTOID};
+	Datum        Values[1]   = {CStringGetTextDatum(storage_name)};
+	const char  *sql =
+	        "SELECT s3_hostname, s3_port, s3_access_key, s3_secret_key, "
+	        "s3_region, s3_bucket, s3_https from "
 	        "probackup.s3_config where name=$1";
 	MemoryContext old = CurrentMemoryContext;
 	int           rc;
@@ -119,25 +126,25 @@ select_s3(const char *storage_name)
 
 		for (uint64 i = 0; i < numvals; i++)
 		{
-			HeapTuple tuple        = SPI_tuptable->vals[i];
-			char     *hostname_str = SPI_getvalue(tuple, tupdesc, 1);
-			char     *port_str     = SPI_getvalue(tuple, tupdesc, 2);
-			char     *access_key_str     = SPI_getvalue(tuple, tupdesc, 3);
-			char     *secret_key_str     = SPI_getvalue(tuple, tupdesc, 4);
+			HeapTuple tuple          = SPI_tuptable->vals[i];
+			char     *hostname_str   = SPI_getvalue(tuple, tupdesc, 1);
+			char     *port_str       = SPI_getvalue(tuple, tupdesc, 2);
+			char     *access_key_str = SPI_getvalue(tuple, tupdesc, 3);
+			char     *secret_key_str = SPI_getvalue(tuple, tupdesc, 4);
 			char     *region_str     = SPI_getvalue(tuple, tupdesc, 5);
 			char     *bucket_str     = SPI_getvalue(tuple, tupdesc, 6);
-			char     *https_str     = SPI_getvalue(tuple, tupdesc, 7);
+			char     *https_str      = SPI_getvalue(tuple, tupdesc, 7);
 
 			MemoryContext spi_ctx = CurrentMemoryContext;
 			MemoryContextSwitchTo(old);
 
-			ret.s3_hostname = pstrdup(hostname_str);
-			ret.s3_port = pstrdup(port_str);
+			ret.s3_hostname   = pstrdup(hostname_str);
+			ret.s3_port       = pstrdup(port_str);
 			ret.s3_access_key = pstrdup(access_key_str);
 			ret.s3_secret_key = pstrdup(secret_key_str);
-			ret.s3_region = pstrdup(region_str);
-			ret.s3_bucket = pstrdup(bucket_str);
-			ret.s3_https = !strcasecmp(https_str, "ON");
+			ret.s3_region     = pstrdup(region_str);
+			ret.s3_bucket     = pstrdup(bucket_str);
+			ret.s3_https      = !strcasecmp(https_str, "ON");
 
 			MemoryContextSwitchTo(spi_ctx);
 		}

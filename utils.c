@@ -64,7 +64,7 @@ get_json_key(const char *key, JsonbContainer *container)
 	JsonbValue *v;
 
 	kval.type           = jbvString;
-	kval.val.string.val = strdup(key);
+	kval.val.string.val = pstrdup(key);
 	kval.val.string.len = strlen(key);
 
 	v = findJsonbValueFromContainer(container, JB_FOBJECT, &kval);
@@ -79,7 +79,7 @@ get_lsn_value(const char *key, JsonbContainer *container)
 	XLogRecPtr ret;
 
 #if PG_MAJOR_VERSION_NUM > 18
-	bool       err = false;
+	bool err = false;
 
 	ret = pg_lsn_in_internal(str, &err);
 	if (err)
@@ -177,7 +177,7 @@ get_int_value(const char *key, JsonbContainer *container)
 	v = get_json_key(key, container);
 
 	// Can't error here as probackup in some cases reports and in some cases
-    //  omits some keys
+	//  omits some keys
 	if (!v) return 0;
 
 	if (v->type != jbvNumeric)

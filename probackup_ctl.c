@@ -17,11 +17,11 @@
 #include "backup.c"
 #include "catalog.c"
 #include "exec.c"
+#include "guc_vars.c"
 #include "probackup.c"
 #include "show.c"
 #include "storage.c"
 #include "utils.c"
-#include "guc_vars.c"
 
 PG_MODULE_MAGIC;
 PG_FUNCTION_INFO_V1(probackup_register_catalog);
@@ -210,6 +210,27 @@ probackup_delete(PG_FUNCTION_ARGS)
 	}
 }
 
+static const char *
+check_path(const char *what, const char *val)
+{
+	if (!val || !val[0])
+	{
+		ereport(ERROR, errmsg("Empty %s", what));
+	}
+
+	if (strchr(val, '/') || strchr(val, '\\'))
+	{
+		ereport(ERROR, errmsg("%s must not contain file path separator", what));
+	}
+
+	if (val[0] == '.')
+	{
+		ereport(ERROR, errmsg("%s starts with dot", what));
+	}
+
+	return val;
+}
+
 Datum
 probackup_log(PG_FUNCTION_ARGS)
 {
@@ -217,18 +238,20 @@ probackup_log(PG_FUNCTION_ARGS)
 	char *pg_instance = text_to_cstring(PG_GETARG_TEXT_PP(1));
 	char *backup_id   = text_to_cstring(PG_GETARG_TEXT_PP(2));
 
-	BackupPath bp     = select_catalog(catalog_id);
-	char *log_path;
-	FILE *fi;
+	BackupPath     bp = select_catalog(catalog_id);
+	char          *log_path;
+	FILE          *fi;
 	StringInfoData out;
-	char buf[BUFSZ];
+	char           buf[BUFSZ];
 	text          *txt;
 
 	if (strcasecmp(bp.storage, "fs"))
 	{
 		ereport(ERROR, errmsg("Log is only available for local backups"));
 	}
-	log_path = psprintf("%s/backups/%s/%s.log", bp.backup_path, pg_instance, backup_id);
+	log_path = psprintf("%s/backups/%s/%s.log", bp.backup_path,
+	                    check_path("instance", pg_instance),
+	                    check_path("backup id", backup_id));
 
 	fi = fopen(log_path, "r");
 	if (!fi)
@@ -238,15 +261,15 @@ probackup_log(PG_FUNCTION_ARGS)
 
 	initStringInfo(&out);
 
-	while(!feof(fi))
+	while (fgets(buf, BUFSZ, fi) != NULL)
 	{
-		fgets(buf, BUFSZ, fi);
 		appendStringInfo(&out, "%s", buf);
 	}
 
 	fclose(fi);
 
-	ereport(INFO, errmsg("Probackup log %s/%s:\n%s", pg_instance, backup_id, out.data));
-	txt       = cstring_to_text("");
+	ereport(INFO, errmsg("Probackup log %s/%s:\n%s", pg_instance, backup_id,
+	                     out.data));
+	txt = cstring_to_text("");
 	PG_RETURN_TEXT_P(txt);
 }

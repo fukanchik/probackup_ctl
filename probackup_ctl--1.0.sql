@@ -33,7 +33,7 @@ RETURNS text AS 'MODULE_PATHNAME', 'probackup_register_catalog'
 LANGUAGE C STRICT VOLATILE;
 
 CREATE FUNCTION probackup.show(
-	   catalog_id INT DEFAULT 0,
+	   catalog_id BIGINT DEFAULT 0,
 	   pg_instance TEXT DEFAULT ''
 )
 RETURNS TABLE (

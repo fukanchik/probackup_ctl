@@ -27,7 +27,8 @@ list_to_args(List *args_list)
 
 	ret[i] = NULL;
 
-	if (probackup_log_commands) {
+	if (probackup_log_commands)
+	{
 		StringInfoData resp;
 		char         **p = ret;
 
@@ -148,7 +149,8 @@ feed(int out_fd, int err_fd, StringInfoData *out, StringInfoData *err)
 				}
 			}
 		} else
-			ereport(INFO, errmsg("Probackup not responding within %d seconds", PROBACKUP_RESPONSE_TIME));
+			ereport(INFO, errmsg("Probackup not responding within %d seconds",
+			                     PROBACKUP_RESPONSE_TIME));
 	}
 }
 
