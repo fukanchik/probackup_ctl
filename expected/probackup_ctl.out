@@ -3,6 +3,12 @@ INFO:  Setting probackup flavour version 2
 SELECT probackup.register_catalog('/tmp/b2');
  register_catalog 
 ------------------
- 
+ /tmp/b2
+(1 row)
+
+SELECT * from probackup.catalogs;
+ id | backup_path | storage | storage_name | probackup_bin 
+----+-------------+---------+--------------+---------------
+  1 | /tmp/b2     | FS      |              | 
 (1 row)
 

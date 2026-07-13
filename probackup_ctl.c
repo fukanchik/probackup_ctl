@@ -106,7 +106,7 @@ probackup_register_catalog(PG_FUNCTION_ARGS)
 		};
 		const char *sql =
 		        "INSERT INTO probackup.catalogs (backup_path, storage, "
-		        "storage_name) VALUES ($1, $2, $3)";
+		        "storage_name, probackup_bin) VALUES ($1, $2, $3, $4)";
 		int ret;
 
 		if (probackup_bin == NULL)
@@ -114,12 +114,12 @@ probackup_register_catalog(PG_FUNCTION_ARGS)
 			nulls[3] = 'n';
 		}
 
-		ret = SPI_execute_with_args(sql, 3, argtypes, Values, nulls, false, 0);
+		ret = SPI_execute_with_args(sql, 4, argtypes, Values, nulls, false, 0);
 		if (ret < 0)
 		{
 			ereport(ERROR, errmsg("SPI error number: %d", ret));
 		}
-		ereport(INFO, errmsg("SPI res=%d", ret));
+		ereport(DEBUG4, errmsg("SPI res=%d", ret));
 	}
 
 	if (SPI_finish() != SPI_OK_FINISH)

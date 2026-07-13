@@ -89,7 +89,7 @@ select_catalog(int catalog_id)
 		ereport(ERROR, errmsg("Can't SPI_connect()"));
 	}
 
-	sql = "SELECT backup_path, storage, storage_name from probackup.catalogs "
+	sql = "SELECT backup_path, storage, storage_name, probackup_bin from probackup.catalogs "
 	      "where id=$1";
 	rc  = SPI_execute_with_args(sql, 1, argtypes, Values, NULL, true, 0);
 	if (rc < 0)

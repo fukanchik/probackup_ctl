@@ -32,7 +32,7 @@ CREATE FUNCTION probackup.register_catalog(backup_path TEXT,
 	   probackup_bin TEXT DEFAULT NULL
 )
 RETURNS text AS 'MODULE_PATHNAME', 'probackup_register_catalog'
-LANGUAGE C STRICT VOLATILE;
+LANGUAGE C VOLATILE;
 
 CREATE FUNCTION probackup.show(
 	   catalog_id BIGINT DEFAULT 0,
