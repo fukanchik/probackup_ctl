@@ -18,12 +18,12 @@ select_catalogs(int64 catalog_id)
 
 	if (catalog_id != 0)
 	{
-		sql = "SELECT id, backup_path, storage, storage_name from "
+		sql = "SELECT id, backup_path, storage, storage_name, probackup_bin from "
 		      "probackup.catalogs where id=$1";
 		ret = SPI_execute_with_args(sql, 1, argtypes, Values, NULL, true, 0);
 	} else
 	{
-		sql = "SELECT id, backup_path, storage, storage_name from "
+		sql = "SELECT id, backup_path, storage, storage_name, probackup_bin from "
 		      "probackup.catalogs";
 		ret = SPI_execute(sql, true, 0);
 	}
@@ -44,6 +44,7 @@ select_catalogs(int64 catalog_id)
 			char       *backup_path_str  = SPI_getvalue(tuple, tupdesc, 2);
 			char       *storage_str      = SPI_getvalue(tuple, tupdesc, 3);
 			char       *storage_name_str = SPI_getvalue(tuple, tupdesc, 4);
+			char       *probackup_bin = SPI_getvalue(tuple, tupdesc, 5);
 			BackupPath *bp;
 
 			MemoryContext spi_ctx = CurrentMemoryContext;
@@ -54,6 +55,7 @@ select_catalogs(int64 catalog_id)
 			bp->backup_path  = pstrdup(backup_path_str);
 			bp->storage      = pstrdup(storage_str);
 			bp->storage_name = pstrdup(storage_name_str);
+			bp->probackup_bin = pstrdup(probackup_bin);
 
 			result = lappend(result, bp);
 			MemoryContextSwitchTo(spi_ctx);
@@ -73,7 +75,7 @@ select_catalog(int catalog_id)
 {
 	const char   *sql;
 	MemoryContext old         = CurrentMemoryContext;
-	Oid           argtypes[1] = {INT4OID};
+	Oid           argtypes[1] = {INT8OID};
 	Datum         Values[1]   = {Int64GetDatum(catalog_id)};
 	BackupPath    ret;
 	int           rc;

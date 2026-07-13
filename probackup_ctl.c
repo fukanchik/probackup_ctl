@@ -38,20 +38,50 @@ _PG_init(void)
 	init_guc_variables();
 }
 
+static char *
+check_path(const char *what, char *val)
+{
+	if (!val || !val[0])
+	{
+		ereport(ERROR, errmsg("Empty %s", what));
+	}
+
+	if (strchr(val, '/') || strchr(val, '\\'))
+	{
+		ereport(ERROR, errmsg("%s must not contain file path separator", what));
+	}
+
+	if (val[0] == '.')
+	{
+		ereport(ERROR, errmsg("%s starts with dot", what));
+	}
+
+	return val;
+}
+
 Datum
 probackup_register_catalog(PG_FUNCTION_ARGS)
 {
 	char *backup_path  = text_to_cstring(PG_GETARG_TEXT_PP(0));
 	char *storage      = text_to_cstring(PG_GETARG_TEXT_PP(1));
 	char *storage_name = text_to_cstring(PG_GETARG_TEXT_PP(2));
+	char *probackup_bin = NULL;
 	text *ret;
+	BackupPath bp;
+	ProbackupCatalog *cat;
 
-	BackupPath bp = {.id           = 0,
-	                 .backup_path  = backup_path,
-	                 .storage      = storage,
-	                 .storage_name = storage_name};
+	if (!PG_ARGISNULL(3))
+	{
+		probackup_bin = text_to_cstring(PG_GETARG_TEXT_PP(3));
+	}
 
-	ProbackupCatalog *cat = probackup_exec_show(&bp, NULL);
+	bp = (BackupPath){.id            = 0,
+	      .backup_path   = backup_path,
+	      .storage       = storage,
+	      .storage_name  = storage_name,
+	      .probackup_bin = probackup_bin};
+
+	cat = probackup_exec_show(&bp, NULL);
 
 	if (cat == NULL)
 	{
@@ -160,10 +190,10 @@ Datum
 probackup_backup(PG_FUNCTION_ARGS)
 {
 	int64 catalog_id       = PG_GETARG_INT64(0);
-	char *pg_instance      = text_to_cstring(PG_GETARG_TEXT_PP(1));
+	char *pg_instance      = check_path("instance", text_to_cstring(PG_GETARG_TEXT_PP(1)));
 	char *backup_mode      = text_to_cstring(PG_GETARG_TEXT_PP(2));
 	char *wal_mode         = text_to_cstring(PG_GETARG_TEXT_PP(3));
-	char *backup_id        = text_to_cstring(PG_GETARG_TEXT_PP(4));
+	char *backup_id        = check_path("backup id", text_to_cstring(PG_GETARG_TEXT_PP(4)));
 	char *parent_backup_id = text_to_cstring(PG_GETARG_TEXT_PP(5));
 
 	BackupPath bp = select_catalog(catalog_id);
@@ -178,8 +208,8 @@ Datum
 probackup_delete(PG_FUNCTION_ARGS)
 {
 	int64 catalog_id  = PG_GETARG_INT64(0);
-	char *pg_instance = text_to_cstring(PG_GETARG_TEXT_PP(1));
-	char *backup_id   = text_to_cstring(PG_GETARG_TEXT_PP(2));
+	char *pg_instance = check_path("instance", text_to_cstring(PG_GETARG_TEXT_PP(1)));
+	char *backup_id   = check_path("backup id", text_to_cstring(PG_GETARG_TEXT_PP(2)));
 
 	BackupPath bp     = select_catalog(catalog_id);
 	List      *params = NIL;
@@ -210,33 +240,12 @@ probackup_delete(PG_FUNCTION_ARGS)
 	}
 }
 
-static const char *
-check_path(const char *what, const char *val)
-{
-	if (!val || !val[0])
-	{
-		ereport(ERROR, errmsg("Empty %s", what));
-	}
-
-	if (strchr(val, '/') || strchr(val, '\\'))
-	{
-		ereport(ERROR, errmsg("%s must not contain file path separator", what));
-	}
-
-	if (val[0] == '.')
-	{
-		ereport(ERROR, errmsg("%s starts with dot", what));
-	}
-
-	return val;
-}
-
 Datum
 probackup_log(PG_FUNCTION_ARGS)
 {
 	int64 catalog_id  = PG_GETARG_INT64(0);
-	char *pg_instance = text_to_cstring(PG_GETARG_TEXT_PP(1));
-	char *backup_id   = text_to_cstring(PG_GETARG_TEXT_PP(2));
+	const char *pg_instance = check_path("instance", text_to_cstring(PG_GETARG_TEXT_PP(1)));
+	const char *backup_id   = check_path("backup id", text_to_cstring(PG_GETARG_TEXT_PP(2)));
 
 	BackupPath     bp = select_catalog(catalog_id);
 	char          *log_path;
@@ -250,8 +259,8 @@ probackup_log(PG_FUNCTION_ARGS)
 		ereport(ERROR, errmsg("Log is only available for local backups"));
 	}
 	log_path = psprintf("%s/backups/%s/%s.log", bp.backup_path,
-	                    check_path("instance", pg_instance),
-	                    check_path("backup id", backup_id));
+	                    pg_instance,
+	                    backup_id);
 
 	fi = fopen(log_path, "r");
 	if (!fi)

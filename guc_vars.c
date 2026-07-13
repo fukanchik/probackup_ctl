@@ -1,7 +1,7 @@
 #include "probackup_ctl.h"
 #include "utils/guc.h"
 
-char *probackup_path = NULL;
+char *global_probackup_path = NULL;
 int   probackup_flavour = 0;
 
 typedef struct
@@ -66,7 +66,7 @@ probackup_command_assign(const char *newval, void *extra)
 {
 	guc_ver *ver = extra;
 
-	probackup_path    = ver->path;
+	global_probackup_path    = ver->path;
 	probackup_flavour = ver->version;
 
 	if (probackup_flavour == 2)
@@ -91,7 +91,7 @@ init_guc_variables(void)
 	                         NULL, NULL, NULL);
 
 	DefineCustomStringVariable("probackup_ctl.command", "Probackup path to use",
-	                           NULL, &probackup_path, DEFAULT_PROBACKUP_PATH,
+	                           NULL, &global_probackup_path, DEFAULT_PROBACKUP_PATH,
 	                           PGC_USERSET, 0, probackup_check_command,
 	                           probackup_command_assign, NULL);
 

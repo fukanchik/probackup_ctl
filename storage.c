@@ -21,6 +21,22 @@ typedef struct
 	bool  s3_https;
 } S3Parameters;
 
+static void
+check_num_storages_valid(const char *kind, const char *storage_name, uint64 numvals)
+{
+	if (numvals == 0)
+	{
+		ereport(ERROR, errmsg("Couldn't find %s storage '%s'", kind, storage_name));
+	}
+
+	if (numvals != 1)
+	{
+		ereport(ERROR, errmsg("Multiple %s storages with the same name: %s",
+							  kind,
+							  storage_name));
+	}
+}
+
 static SftpParameters
 select_sftp(const char *storage_name)
 {
@@ -48,17 +64,8 @@ select_sftp(const char *storage_name)
 	{
 		TupleDesc tupdesc = SPI_tuptable->tupdesc;
 		uint64    numvals = SPI_processed;
-		if (numvals == 0)
-		{
-			ereport(ERROR, errmsg("No SFTP storage found '%s'", storage_name));
-		}
 
-		if (numvals != 1)
-		{
-			ereport(ERROR,
-			        errmsg("Multiple SFTP storages with the same name: %s",
-			               storage_name));
-		}
+		check_num_storages_valid("SFTP", storage_name, numvals);
 
 		for (uint64 i = 0; i < numvals; i++)
 		{
@@ -114,15 +121,8 @@ select_s3(const char *storage_name)
 	{
 		TupleDesc tupdesc = SPI_tuptable->tupdesc;
 		uint64    numvals = SPI_processed;
-		if (numvals == 0)
-		{
-			ereport(ERROR, errmsg("Couldn't find storage '%s'", storage_name));
-		}
-		if (numvals != 1)
-		{
-			ereport(ERROR, errmsg("Multiple S3 storages with the same name: %s",
-			                      storage_name));
-		}
+
+		check_num_storages_valid("S3", storage_name, numvals);
 
 		for (uint64 i = 0; i < numvals; i++)
 		{

@@ -12,7 +12,7 @@
 #define DEFAULT_LOG_PROBACKUP_COMMANDS false
 #define DEFAULT_PROBACKUP_PATH "pg_probackup"
 
-extern char *probackup_path;
+extern char *global_probackup_path;
 extern int   probackup_flavour;
 
 /* Single backup info */
@@ -66,6 +66,7 @@ typedef struct
 	char *backup_path;
 	char *storage;
 	char *storage_name;
+	char *probackup_bin;
 } BackupPath;
 
 /* Duplicate NZE string */

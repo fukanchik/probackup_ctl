@@ -29,8 +29,13 @@ exec_probackup(const BackupPath *bp, const char *command, List *params)
 {
 	List *s_params   = storage_params_list(bp);
 	List *all_params = list_concat(s_params, params);
+	const char *probackup_bin = global_probackup_path;
 
-	return run_probackup(probackup_path, command, all_params);
+	if (bp->probackup_bin)
+	{
+		probackup_bin = bp->probackup_bin;
+	}
+	return run_probackup(probackup_bin, command, all_params);
 }
 
 Jsonb *
