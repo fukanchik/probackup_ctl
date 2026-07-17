@@ -66,7 +66,6 @@ probackup_command_assign(const char *newval, void *extra)
 {
 	guc_ver *ver = extra;
 
-	global_probackup_path    = ver->path;
 	probackup_flavour = ver->version;
 
 	if (probackup_flavour == 2)

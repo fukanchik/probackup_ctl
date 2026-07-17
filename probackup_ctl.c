@@ -229,15 +229,22 @@ probackup_backup(PG_FUNCTION_ARGS)
 	        check_path("instance", text_to_cstring(PG_GETARG_TEXT_PP(1)));
 	char *backup_mode = text_to_cstring(PG_GETARG_TEXT_PP(2));
 	char *wal_mode    = text_to_cstring(PG_GETARG_TEXT_PP(3));
-	char *backup_id =
-	        check_path("backup id", text_to_cstring(PG_GETARG_TEXT_PP(4)));
+	char *backup_id = NULL;
 	char *parent_backup_id = text_to_cstring(PG_GETARG_TEXT_PP(5));
 
 	BackupPath bp = select_catalog(catalog_id);
+	char *ret;
+	text *txt;
 
-	char *ret = probackup_exec_backup(&bp, pg_instance, backup_mode, wal_mode,
+	if (!PG_ARGISNULL(4))
+	{
+		backup_id = text_to_cstring(PG_GETARG_TEXT_PP(4));
+	}
+
+	ret = probackup_exec_backup(&bp, pg_instance, backup_mode, wal_mode,
 	                                  backup_id, parent_backup_id);
-	text *txt = cstring_to_text(ret);
+	txt = cstring_to_text(ret);
+
 	PG_RETURN_TEXT_P(txt);
 }
 

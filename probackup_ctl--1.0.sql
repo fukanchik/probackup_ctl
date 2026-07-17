@@ -26,7 +26,7 @@ CREATE TABLE probackup.sftp_config (
 	   sftp_user TEXT
 );
 
-CREATE FUNCTION probackup.register_catalog(backup_path TEXT,
+CREATE FUNCTION probackup.register_catalog (backup_path TEXT,
 	   storage TEXT DEFAULT 'FS',
 	   storage_name TEXT DEFAULT '',
 	   probackup_bin TEXT DEFAULT NULL
@@ -34,7 +34,7 @@ CREATE FUNCTION probackup.register_catalog(backup_path TEXT,
 RETURNS text AS 'MODULE_PATHNAME', 'probackup_register_catalog'
 LANGUAGE C VOLATILE;
 
-CREATE FUNCTION probackup.show(
+CREATE FUNCTION probackup.show (
 	   catalog_id BIGINT DEFAULT 0,
 	   pg_instance TEXT DEFAULT ''
 )
@@ -59,7 +59,7 @@ RETURNS TABLE (
 AS 'MODULE_PATHNAME', 'probackup_show'
 LANGUAGE C STRICT;
 
-CREATE FUNCTION probackup.backup(catalog_id BIGINT,
+CREATE FUNCTION probackup.backup (catalog_id BIGINT,
 	   pg_instance TEXT,
 	   backup_mode TEXT DEFAULT '',
 	   wal_mode TEXT DEFAULT '',
@@ -69,7 +69,7 @@ CREATE FUNCTION probackup.backup(catalog_id BIGINT,
 RETURNS text AS 'MODULE_PATHNAME', 'probackup_backup'
 LANGUAGE C STRICT;
 
-CREATE FUNCTION probackup.delete(catalog_id BIGINT,
+CREATE FUNCTION probackup.delete (catalog_id BIGINT,
 	   pg_instance TEXT,
 	   backup_id TEXT
 )
@@ -77,7 +77,7 @@ RETURNS TEXT
 AS 'MODULE_PATHNAME', 'probackup_delete'
 LANGUAGE C STRICT;
 
-CREATE FUNCTION probackup.log(catalog_id BIGINT, pg_instance TEXT, backup_id TEXT)
+CREATE FUNCTION probackup.log (catalog_id BIGINT, pg_instance TEXT, backup_id TEXT)
 RETURNS TEXT
 AS 'MODULE_PATHNAME', 'probackup_log'
 LANGUAGE C STRICT;

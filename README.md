@@ -41,25 +41,25 @@ SFTP storage
 ```
 insert into probackup.sftp_config (name, sftp_hostname, sftp_port, sftp_user) values ('ssh0', 'localhost', '', '');
 ```
-S3 storage (not keys are openly accessible here):
+S3 storage, note: keys are openly accessible here!:
 ```
 insert into probackup.s3_config (name, s3_hostname, s3_port, s3_access_key, s3_secret_key, s3_region, s3_bucket, s3_https) values ('locals3', 'localhost', '9000', 'minioadmin', 'minioadmin', 'us-west-2', 's3demo', 'OFF');
 ```
 Now you can access and register catalogs:
-Regular file system catalog:
+Regular file system catalog (version 2):
 ```
 select probackup.register_catalog('/tmp/b3/',storage => 'fs');
 ```
 SFTP catalog:
 ```
-select probackup.register_catalog('/tmp/b3-ssh/',storage => 'sftp', storage_name => 'ssh0');
+select probackup.register_catalog('/tmp/b3-ssh/',storage => 'sftp', storage_name => 'ssh0', probackup_bin=>'pg_probackup3');
 ```
 S3 catalog:
 ```
-select probackup.register_catalog('/tmp/b3-s3/',storage => 's3', storage_name => 'locals3');
+select probackup.register_catalog('/tmp/b3-s3/',storage => 's3', storage_name => 'locals3', probackup_bin=>'pg_probackup');
 ```
 
-Now you can list backups in catalogs:
+Now you can list all backups in all catalogs:
 ```
 select * from probackup.show();
 ```
@@ -71,7 +71,7 @@ select * from probackup.show(catalog_id=>1);
 
 ...or make a backup:
 ```
-select * from probackup.backup(catalog_id=>2, pg_instance=>'dba1');
+select * from probackup.backup(catalog_id=>2, pg_instance=>'dba1', wal_mode=>'stream');
 ```
 or enable command logging:
 ```
