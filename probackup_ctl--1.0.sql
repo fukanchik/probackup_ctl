@@ -8,6 +8,7 @@ CREATE TABLE probackup.catalogs (
 	   backup_path TEXT UNIQUE,
 	   storage TEXT,
 	   storage_name TEXT,
+	   probackup_version INT,
 	   probackup_bin TEXT
 );
 

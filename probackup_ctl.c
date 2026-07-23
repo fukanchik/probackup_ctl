@@ -96,7 +96,10 @@ probackup_register_catalog(PG_FUNCTION_ARGS)
 	                  .backup_path   = backup_path,
 	                  .storage       = storage,
 	                  .storage_name  = storage_name,
+					  .probackup_version = get_probackup_version(probackup_bin),
 	                  .probackup_bin = probackup_bin};
+
+	probackup_set_flavour(bp.probackup_version);
 
 	cat = probackup_exec_show(&bp, NULL);
 
@@ -112,23 +115,26 @@ probackup_register_catalog(PG_FUNCTION_ARGS)
 	}
 
 	{
-		char  nulls[4]    = {' ', ' ', ' ', ' '};
-		Oid   argtypes[4] = {TEXTOID, TEXTOID, TEXTOID, TEXTOID};
-		Datum Values[4]   = {
+#define NUMPARAMS 5
+#define PROBACKUP_BIN_PARAM 4
+		char  nulls[NUMPARAMS]    = {' ', ' ', ' ', ' ', ' '};
+		Oid   argtypes[NUMPARAMS] = {TEXTOID, TEXTOID, TEXTOID, INT4OID, TEXTOID};
+		Datum Values[NUMPARAMS]   = {
                 CStringGetTextDatum(backup_path), CStringGetTextDatum(storage),
                 CStringGetTextDatum(storage_name),
+				bp.probackup_version,
                 probackup_bin ? CStringGetTextDatum(probackup_bin) : (Datum)0};
 		const char *sql =
 		        "INSERT INTO probackup.catalogs (backup_path, storage, "
-		        "storage_name, probackup_bin) VALUES ($1, $2, $3, $4)";
+		        "storage_name, probackup_version, probackup_bin) VALUES ($1, $2, $3, $4, $5)";
 		int ret;
 
 		if (probackup_bin == NULL)
 		{
-			nulls[3] = 'n';
+			nulls[PROBACKUP_BIN_PARAM] = 'n';
 		}
 
-		ret = SPI_execute_with_args(sql, 4, argtypes, Values, nulls, false, 0);
+		ret = SPI_execute_with_args(sql, NUMPARAMS, argtypes, Values, nulls, false, 0);
 		if (ret < 0)
 		{
 			ereport(ERROR, errmsg("SPI error number: %d", ret));

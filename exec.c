@@ -68,7 +68,7 @@ run0(int fd_out, int fd_err, char *args[])
 
 	execvp(args[0], args);
 
-	ereport(ERROR, errmsg("execvp(): %m"));
+	ereport(ERROR, errmsg("run '%s': %m", args[0]));
 }
 
 /* Communicate to subprocess via out_fd and err_fd accumulating output into out

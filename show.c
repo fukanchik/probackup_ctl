@@ -189,6 +189,8 @@ probackup_exec_show(const BackupPath *bp, char *pg_instance)
 	List *params = NIL;
 	Jsonb *jb;
 
+	probackup_set_flavour(bp->probackup_version);
+
 	if (pg_instance && strlen(pg_instance) > 0)
 	{
 		params = lappend(params, "--instance");

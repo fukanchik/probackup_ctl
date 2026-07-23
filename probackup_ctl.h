@@ -67,6 +67,7 @@ typedef struct
 	char *backup_path;
 	char *storage;
 	char *storage_name;
+	int probackup_version;
 	char *probackup_bin;
 } BackupPath;
 
@@ -122,5 +123,9 @@ char *jbvTypeName(enum jbvType type);
 void  init_guc_variables(void);
 char *run_probackup(const char *probackup_path, const char *command,
                     List *all_params);
+int   get_probackup_version(const char *probackup_path);
+void probackup_set_flavour(int ver);
+
+
 
 #endif // __PROBACKUP_CTL_H__

@@ -25,19 +25,14 @@ probackup_check_command(char **newval, void **extra, GucSource source)
 
 	PG_TRY();
 	{
-		char *version = run_probackup(*newval, "version", NIL);
+		const int version = get_probackup_version(*newval);
 
-		if (strstr(version, "pg_probackup3") != NULL)
-		{
-			probackup_version = 3;
-			ok                = true;
-		} else if (strstr(version, "pg_probackup") != NULL)
-		{
-			probackup_version = 2;
-			ok                = true;
-		} else
+		if (version == -1)
 		{
 			ok = false;
+		} else {
+			probackup_version = version;
+			ok = true;
 		}
 	}
 	PG_CATCH();
@@ -60,13 +55,10 @@ probackup_check_command(char **newval, void **extra, GucSource source)
 	return ok;
 }
 
-/* Assign new pg_probackup path and version. */
-static void
-probackup_command_assign(const char *newval, void *extra)
+void
+probackup_set_flavour(int ver)
 {
-	guc_ver *ver = extra;
-
-	probackup_flavour = ver->version;
+	probackup_flavour = ver;
 
 	if (probackup_flavour == 2)
 	{
@@ -77,6 +69,15 @@ probackup_command_assign(const char *newval, void *extra)
 		get_backup_value = get_backup_value3;
 		ereport(INFO, errmsg("Setting probackup flavour version 3"));
 	}
+}
+
+/* Assign new pg_probackup path and version. */
+static void
+probackup_command_assign(const char *newval, void *extra)
+{
+	guc_ver *ver = extra;
+
+	probackup_set_flavour(ver->version);
 }
 
 /* Register supported GUC variables */

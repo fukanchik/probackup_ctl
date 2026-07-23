@@ -4,28 +4,26 @@
 List *
 select_catalogs(int64 catalog_id)
 {
-	const char   *sql;
 	int           ret;
 	List         *result      = NIL;
 	MemoryContext old         = CurrentMemoryContext;
-	Oid           argtypes[1] = {INT8OID};
-	Datum         Values[1]   = {Int64GetDatum(catalog_id)};
 
 	if (SPI_connect() != SPI_OK_CONNECT)
 	{
 		ereport(ERROR, errmsg("Can't SPI_connect()"));
 	}
 
+#define FIELDS "id, backup_path, storage, storage_name, probackup_version, probackup_bin"
 	if (catalog_id != 0)
 	{
-		sql = "SELECT id, backup_path, storage, storage_name, probackup_bin "
-		      "from "
+		Oid           argtypes[1] = {INT8OID};
+		Datum         Values[1]   = {Int64GetDatum(catalog_id)};
+		const char *sql = "SELECT "  FIELDS " from "
 		      "probackup.catalogs where id=$1";
 		ret = SPI_execute_with_args(sql, 1, argtypes, Values, NULL, true, 0);
 	} else
 	{
-		sql = "SELECT id, backup_path, storage, storage_name, probackup_bin "
-		      "from "
+		const char *sql = "SELECT " FIELDS " from "
 		      "probackup.catalogs";
 		ret = SPI_execute(sql, true, 0);
 	}
@@ -46,7 +44,8 @@ select_catalogs(int64 catalog_id)
 			char       *backup_path_str  = SPI_getvalue(tuple, tupdesc, 2);
 			char       *storage_str      = SPI_getvalue(tuple, tupdesc, 3);
 			char       *storage_name_str = SPI_getvalue(tuple, tupdesc, 4);
-			char       *probackup_bin    = SPI_getvalue(tuple, tupdesc, 5);
+			char       *probackup_version_str    = SPI_getvalue(tuple, tupdesc, 5);
+			char       *probackup_bin    = SPI_getvalue(tuple, tupdesc, 6);
 			BackupPath *bp;
 
 			MemoryContext spi_ctx = CurrentMemoryContext;
@@ -57,6 +56,7 @@ select_catalogs(int64 catalog_id)
 			bp->backup_path   = pstrdup(backup_path_str);
 			bp->storage       = pstrdup(storage_str);
 			bp->storage_name  = pstrdup(storage_name_str);
+			bp->probackup_version = atoi(probackup_version_str);
 			bp->probackup_bin = probackup_bin?pstrdup(probackup_bin):NULL;
 
 			result = lappend(result, bp);
@@ -118,7 +118,8 @@ select_catalog(int catalog_id)
 			char     *backup_path_str   = SPI_getvalue(tuple, tupdesc, 1);
 			char     *storage_str       = SPI_getvalue(tuple, tupdesc, 2);
 			char     *storage_name_str  = SPI_getvalue(tuple, tupdesc, 3);
-			char     *probackup_bin_str = SPI_getvalue(tuple, tupdesc, 4);
+			char     *probackup_version_str = SPI_getvalue(tuple, tupdesc, 4);
+			char     *probackup_bin_str = SPI_getvalue(tuple, tupdesc, 5);
 
 			MemoryContext spi_ctx = CurrentMemoryContext;
 			MemoryContextSwitchTo(old);
@@ -127,6 +128,7 @@ select_catalog(int catalog_id)
 			ret.backup_path  = pstrdup(backup_path_str);
 			ret.storage      = pstrdup(storage_str);
 			ret.storage_name = pstrdup(storage_name_str);
+			ret.probackup_version = atoi(probackup_version_str);
 			ret.probackup_bin =
 			        probackup_bin_str ? pstrdup(probackup_bin_str) : NULL;
 

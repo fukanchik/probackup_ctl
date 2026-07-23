@@ -54,3 +54,28 @@ exec_probackup_json(const BackupPath *bp, const char *command, List *params)
 
 	return jb;
 }
+
+int
+get_probackup_version(const char *probackup_path)
+{
+	char *version;
+	const char *path_to_use = probackup_path;
+
+	if (path_to_use == NULL)
+	{
+		path_to_use = global_probackup_path;
+	}
+
+	version= run_probackup(path_to_use, "version", NIL);
+
+	if (strstr(version, "pg_probackup3") != NULL)
+	{
+		return 3;
+	} else if (strstr(version, "pg_probackup") != NULL)
+	{
+		return 2;
+	} else
+	{
+		return -1;
+	}
+}

@@ -54,7 +54,7 @@ select probackup.register_catalog('/tmp/b2/',storage => 'fs', probackup_bin=>'pg
 
 Regular file system catalog (version 3):
 ```
-select probackup.register_catalog('/tmp/b3/',storage => 'fs', probackup_bin='pg_probackup3);
+select probackup.register_catalog('/tmp/b3/',storage => 'fs', probackup_bin=>'pg_probackup3');
 ```
 
 SFTP catalog (ver 3):

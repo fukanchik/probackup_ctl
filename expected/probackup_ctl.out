@@ -3,14 +3,16 @@ INFO:  Setting probackup flavour version 2
 SELECT probackup.register_catalog(backup_path => NULL);
 ERROR:  `backup_path' is required!
 SELECT probackup.register_catalog(backup_path => '/tmp/b2');
+INFO:  Setting probackup flavour version 2
+INFO:  Setting probackup flavour version 2
  register_catalog 
 ------------------
  /tmp/b2
 (1 row)
 
 SELECT * from probackup.catalogs;
- id | backup_path | storage | storage_name | probackup_bin 
-----+-------------+---------+--------------+---------------
-  1 | /tmp/b2     | FS      |              | 
+ id | backup_path | storage | storage_name | probackup_version | probackup_bin 
+----+-------------+---------+--------------+-------------------+---------------
+  1 | /tmp/b2     | FS      |              |                 2 | 
 (1 row)
 
