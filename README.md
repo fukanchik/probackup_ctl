@@ -46,15 +46,23 @@ S3 storage, note: keys are openly accessible here!:
 insert into probackup.s3_config (name, s3_hostname, s3_port, s3_access_key, s3_secret_key, s3_region, s3_bucket, s3_https) values ('locals3', 'localhost', '9000', 'minioadmin', 'minioadmin', 'us-west-2', 's3demo', 'OFF');
 ```
 Now you can access and register catalogs:
+
 Regular file system catalog (version 2):
 ```
-select probackup.register_catalog('/tmp/b3/',storage => 'fs');
+select probackup.register_catalog('/tmp/b2/',storage => 'fs', probackup_bin=>'pg_probackup');
 ```
-SFTP catalog:
+
+Regular file system catalog (version 3):
+```
+select probackup.register_catalog('/tmp/b3/',storage => 'fs', probackup_bin='pg_probackup3);
+```
+
+SFTP catalog (ver 3):
 ```
 select probackup.register_catalog('/tmp/b3-ssh/',storage => 'sftp', storage_name => 'ssh0', probackup_bin=>'pg_probackup3');
 ```
-S3 catalog:
+
+S3 catalog (ver 2, postgres 18):
 ```
 select probackup.register_catalog('/tmp/b3-s3/',storage => 's3', storage_name => 'locals3', probackup_bin=>'pg_probackup');
 ```
@@ -73,12 +81,17 @@ select * from probackup.show(catalog_id=>1);
 ```
 select * from probackup.backup(catalog_id=>2, pg_instance=>'dba1', wal_mode=>'stream');
 ```
-or enable command logging:
+or enable command logging for debugging problems:
 ```
-set probackup_log_command=true;
+set probackup_ctl.log_commands=true;
 ```
 
 Let's delete a backup:
 ```
 select * from probackup.delete(catalog_id=>3, pg_instance=>'dba1', backup_id=>'2026-06-20-21-31-20-518');
+```
+
+For probackup version 3 we can check logfile of an old backup:
+```
+ select * from probackup.log(catalog_id=>1,pg_instance=>'dba1',backup_id=>'2026-07-23-12-40-19-663');
 ```

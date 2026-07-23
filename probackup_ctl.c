@@ -13,16 +13,6 @@
 #include "utils/jsonb.h"
 #include "utils/palloc.h"
 
-// WTF?!
-#include "backup.c"
-#include "catalog.c"
-#include "exec.c"
-#include "guc_vars.c"
-#include "probackup.c"
-#include "show.c"
-#include "storage.c"
-#include "utils.c"
-
 PG_MODULE_MAGIC;
 PG_FUNCTION_INFO_V1(probackup_register_catalog);
 PG_FUNCTION_INFO_V1(probackup_show);
