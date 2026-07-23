@@ -94,7 +94,7 @@ BackupPath select_catalog(int catalog_id);
 /* Build ProbackupBackup from json dictionary */
 ProbackupBackup *get_backup_value3(JsonbContainer *container);
 ProbackupBackup *get_backup_value2(JsonbContainer *container);
-ProbackupBackup *(*get_backup_value)(JsonbContainer *container);
+extern ProbackupBackup *(*get_backup_value)(JsonbContainer *container);
 List *get_backup_list_value(const char *key, JsonbContainer *outer);
 
 ProbackupInstance *parse_show_instance(JsonbValue val);

@@ -1,6 +1,6 @@
 /* Support for probackup storages configuration. FS/SFTP/S3. */
-#include "executor/spi.h"
 #include "probackup_ctl.h"
+#include "executor/spi.h"
 #include "utils/builtins.h"
 
 typedef struct

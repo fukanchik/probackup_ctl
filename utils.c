@@ -1,6 +1,5 @@
-#include "c.h"
-#include "nodes/miscnodes.h"
 #include "probackup_ctl.h"
+#include "nodes/miscnodes.h"
 #include "utils/builtins.h"
 #include "utils/datetime.h"
 #include "utils/jsonb.h"
@@ -78,7 +77,7 @@ get_lsn_value(const char *key, JsonbContainer *container)
 	char      *str = get_string_value(key, container);
 	XLogRecPtr ret;
 
-#if PG_VERSION_NUM < 170000
+#if PG_VERSION_NUM < 190000
 	bool err = false;
 
 	ret = pg_lsn_in_internal(str, &err);

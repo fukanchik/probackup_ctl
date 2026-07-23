@@ -1,5 +1,5 @@
-#include "executor/spi.h"
 #include "probackup_ctl.h"
+#include "executor/spi.h"
 
 List *
 select_catalogs(int64 catalog_id)

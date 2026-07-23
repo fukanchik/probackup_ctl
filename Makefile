@@ -3,9 +3,9 @@ PGFILEDESC = "Extension to talk to probackup3"
 EXTENSION=probackup_ctl
 DATA=probackup_ctl--1.0.sql
 
-OBJS=exec.o catalog.o probackup.o show.o storage.o utils.o probackup_ctl.o
+OBJS=exec.o catalog.o probackup.o storage.o utils.o probackup_ctl.o guc_vars.o show.o backup.o
 
-MODULES_big=probackup_ctl
+MODULE_big=probackup_ctl
 
 REGRESS=probackup_ctl
 
