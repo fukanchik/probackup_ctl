@@ -5,9 +5,6 @@ ERROR:  `backup_path' is required!
 SELECT probackup.register_catalog(backup_path => '/tmp/b2');
 INFO:  Setting probackup flavour version 2
 INFO:  Setting probackup flavour version 2
-INFO:  Probackup result code=0, output:
-WARNING: This backup catalog contains no backup instances. Backup instance can be added via 'add-instance' command.
-
  register_catalog 
 ------------------
  /tmp/b2
