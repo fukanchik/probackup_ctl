@@ -1,0 +1,10 @@
+diff -U3 /tmp/0/probackup_ctl/expected/probackup_ctl.out /tmp/0/probackup_ctl/results/probackup_ctl.out
+--- /tmp/0/probackup_ctl/expected/probackup_ctl.out	2026-07-27 13:07:52.218276685 +0300
++++ /tmp/0/probackup_ctl/results/probackup_ctl.out	2026-07-27 13:07:53.752271988 +0300
+@@ -5,9 +5,6 @@
+ SELECT probackup.register_catalog(backup_path => '/tmp/b2');
+ INFO:  Setting probackup flavour version 2
+ INFO:  Setting probackup flavour version 2
+  register_catalog 
+ ------------------
+  /tmp/b2
