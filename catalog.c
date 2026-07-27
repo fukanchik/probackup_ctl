@@ -1,6 +1,8 @@
 #include "probackup_ctl.h"
 #include "executor/spi.h"
 
+#define FIELDS "id, backup_path, storage, storage_name, probackup_version, probackup_bin"
+
 List *
 select_catalogs(int64 catalog_id)
 {
@@ -13,7 +15,6 @@ select_catalogs(int64 catalog_id)
 		ereport(ERROR, errmsg("Can't SPI_connect()"));
 	}
 
-#define FIELDS "id, backup_path, storage, storage_name, probackup_version, probackup_bin"
 	if (catalog_id != 0)
 	{
 		Oid           argtypes[1] = {INT8OID};
@@ -89,8 +90,7 @@ select_catalog(int catalog_id)
 		ereport(ERROR, errmsg("Can't SPI_connect()"));
 	}
 
-	sql = "SELECT backup_path, storage, storage_name, probackup_bin from probackup.catalogs "
-	      "where id=$1";
+	sql = "SELECT " FIELDS " from probackup.catalogs where id=$1";
 	rc  = SPI_execute_with_args(sql, 1, argtypes, Values, NULL, true, 0);
 	if (rc < 0)
 	{
@@ -114,12 +114,13 @@ select_catalog(int catalog_id)
 
 		for (uint64 i = 0; i < numvals; i++)
 		{
-			HeapTuple tuple             = SPI_tuptable->vals[i];
-			char     *backup_path_str   = SPI_getvalue(tuple, tupdesc, 1);
-			char     *storage_str       = SPI_getvalue(tuple, tupdesc, 2);
-			char     *storage_name_str  = SPI_getvalue(tuple, tupdesc, 3);
-			char     *probackup_version_str = SPI_getvalue(tuple, tupdesc, 4);
-			char     *probackup_bin_str = SPI_getvalue(tuple, tupdesc, 5);
+			HeapTuple tuple                 = SPI_tuptable->vals[i];
+			// id (1)  is not needed
+			char     *backup_path_str       = SPI_getvalue(tuple, tupdesc, 2);
+			char     *storage_str           = SPI_getvalue(tuple, tupdesc, 3);
+			char     *storage_name_str      = SPI_getvalue(tuple, tupdesc, 4);
+			char     *probackup_version_str = SPI_getvalue(tuple, tupdesc, 5);
+			char     *probackup_bin_str     = SPI_getvalue(tuple, tupdesc, 6);
 
 			MemoryContext spi_ctx = CurrentMemoryContext;
 			MemoryContextSwitchTo(old);

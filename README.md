@@ -85,13 +85,11 @@ or enable command logging for debugging problems:
 ```
 set probackup_ctl.log_commands=true;
 ```
-
-Let's delete a backup:
-```
-select * from probackup.delete(catalog_id=>3, pg_instance=>'dba1', backup_id=>'2026-06-20-21-31-20-518');
-```
-
 For probackup version 3 we can check logfile of an old backup:
 ```
- select * from probackup.log(catalog_id=>1,pg_instance=>'dba1',backup_id=>'2026-07-23-12-40-19-663');
+select * from probackup.log(catalog_id=>2,pg_instance=>'dba1',backup_id=>(select backup_id from probackup.show(catalog_id=>2)));
+```
+Let's delete a backup:
+```
+select * from probackup.delete(catalog_id=>2, pg_instance=>'dba1', backup_id=>(select backup_id from probackup.show(catalog_id=>2)));
 ```
